@@ -1,0 +1,37 @@
+{
+  "name": "Blanquita Tracker",
+  "short_name": "Blanquita",
+  "description": "Registro de paseos con cuotas semanales y contador mensual.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "theme_color": "#0f172a",
+  "background_color": "#0b122a",
+  "icons": [
+    {
+      "src": "icons/blanquita.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/blanquita-maskable.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icons/blanquita-180.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Registrar ahora",
+      "short_name": "Registrar",
+      "url": "./index.html#registrar"
+    }
+  ]
+}

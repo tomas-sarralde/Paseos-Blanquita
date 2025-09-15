@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Blanquita Tracker 🐾</title>
+  <style>
+    :root{
+      --bg:#0f172a; /* slate-900 */
+      --panel:#111827; /* gray-900 */
+      --muted:#94a3b8; /* slate-400 */
+      --text:#e5e7eb; /* gray-200 */
+      --accent:#22c55e; /* green-500 */
+      --accent-2:#60a5fa; /* blue-400 */
+      --warn:#f59e0b; /* amber-500 */
+      --danger:#ef4444; /* red-500 */
+      --ok:#10b981; /* emerald-500 */
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:linear-gradient(180deg,#0b1227,#0f172a);color:var(--text);font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,sans-serif}
+    .wrap{max-width:980px;margin:0 auto;padding:20px}
+    header{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+    .logo{font-size:1.6rem;font-weight:800;letter-spacing:.3px}
+    .card{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:14px;padding:16px}
+    .grid{display:grid;gap:16px}
+    @media(min-width:900px){.grid-3{grid-template-columns:2fr 1fr 1fr}}
+    @media(min-width:800px){.grid-2{grid-template-columns:1fr 1fr}}
+    label{display:block;margin:6px 0 4px;font-size:.9rem;color:var(--muted)}
+    input,select,button,textarea{width:100%;padding:10px 12px;border-radius:12px;border:1px solid rgba(255,255,255,.1);background:#0b1020;color:var(--text)}
+    input:focus,select:focus,textarea:focus{outline:2px solid rgba(96,165,250,.5);border-color:transparent}
+    button{cursor:pointer;font-weight:600}
+    .btn{background:linear-gradient(180deg,#1f2937,#0b1020)}
+    .btn-primary{background:linear-gradient(180deg,#22c55e,#16a34a);border:none}
+    .btn-danger{background:linear-gradient(180deg,#ef4444,#b91c1c);border:none}
+    .row{display:flex;gap:8px;flex-wrap:wrap}
+    .chips{display:flex;gap:8px;flex-wrap:wrap}
+    .chip{padding:8px 12px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);font-weight:700}
+    .chip.success{background:rgba(16,185,129,.1);border-color:rgba(16,185,129,.3)}
+    .chip.warn{background:rgba(245,158,11,.1);border-color:rgba(245,158,11,.3)}
+    .chip.muted{background:rgba(148,163,184,.08);border-color:rgba(148,163,184,.2);color:var(--muted)}
+    .pill{display:inline-block;padding:2px 8px;border-radius:999px;font-size:.75rem;border:1px solid rgba(255,255,255,.15);color:var(--muted);background:#0b1020}
+    table{width:100%;border-collapse:collapse;margin-top:10px}
+    th,td{padding:10px;border-bottom:1px solid rgba(255,255,255,.06);text-align:left}
+    th{color:#cbd5e1;font-weight:700}
+    tr:hover td{background:rgba(255,255,255,.02)}
+    .right{margin-left:auto}
+    .subtle{color:var(--muted)}
+    .progress{height:10px;background:#0b1020;border:1px solid rgba(255,255,255,.08);border-radius:999px;overflow:hidden}
+    .bar{height:100%;background:linear-gradient(90deg,#22c55e,#60a5fa)}
+    .cta-row{display:flex;gap:10px;flex-wrap:wrap}
+    .note{font-size:.9rem;color:var(--muted)}
+    footer{opacity:.8;margin:28px 0 12px;font-size:.9rem}
+    .tag{font-size:.8rem;padding:2px 8px;border-radius:999px;background:rgba(96,165,250,.12);border:1px solid rgba(96,165,250,.25)}
+    .split{display:flex;gap:10px}
+    .split>*{flex:1}
+    .hidden{display:none}
+  </style>
+  <link rel="manifest" href="manifest.webmanifest" />
+  <meta name="theme-color" content="#0f172a" />
+  <link rel="apple-touch-icon" href="icons/blanquita-180.png" />
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="logo">Blanquita Tracker <span class="pill">v1.6 (PWA)</span></div>
+      <div class="right subtle" id="tz"></div><button id="btnInstall" class="btn" style="display:none;margin-left:8px">Instalar app</button>
+    </header>
+
+    <div class="grid grid-3">
+      <!-- Registrar paseo -->
+      <section class="card">
+        <h2 id="registrar">Registrar paseo</h2>
+        <div class="grid grid-2">
+          <div>
+            <label for="person">Persona</label>
+            <select id="person"></select>
+          </div>
+          <div>
+            <label for="dt">Fecha y hora</label>
+            <input id="dt" type="datetime-local" />
+          </div>
+        </div>
+        <label for="notes">Notas</label>
+        <input id="notes" type="text" placeholder="Opcional" />
+        <div class="cta-row" style="margin-top:12px">
+          <button id="btnSave" class="btn-primary">Guardar paseo</button>
+          <button id="btnQuick" class="btn">Guardar ahora (rápido)</button>
+        </div>
+      </section>
+
+      <!-- Integrantes -->
+      <section class="card">
+        <h2>Integrantes</h2>
+        <div class="split">
+          <input id="newPerson" type="text" placeholder="Agregar nombre" />
+          <button id="btnAdd" class="btn">Añadir</button>
+        </div>
+        <div id="people" class="chips" style="margin-top:12px"></div>
+        <div class="row" style="margin-top:12px">
+          <button id="btnSeed" class="btn">Cargar ejemplo</button>
+          <button id="btnClearPeople" class="btn-danger">Vaciar integrantes</button>
+        </div>
+      </section>
+
+      <!-- Estado -->
+      <section class="card">
+        <h2>Estado de hoy</h2>
+        <div class="chips">
+          <div class="chip" id="todayTotal">Total: 0</div>
+          <div class="chip muted" id="lastWalk">Último: —</div>
+          <div class="chip muted" id="goalChip">Meta 3 paseos</div>
+        </div>
+        <div class="progress" style="margin-top:12px"><div id="bar" class="bar" style="width:0%"></div></div>
+        <ul id="perPerson" style="margin-top:12px;padding-left:18px"></ul>
+      </section>
+    </div>
+
+    <!-- Cuotas semanales (rotación automática) -->
+    <section class="card" style="margin-top:16px">
+      <h2>Cuotas semanales (rotación automática)</h2>
+      <p class="note">Alterna automáticamente cada semana entre:<br><strong>Semana A:</strong> Igna, Mati, Seba (cuota 4) &nbsp;|&nbsp; <strong>Semana B:</strong> Titi, Diego, Tomi (cuota 4). El resto tiene cuota 3.</p>
+      <div class="grid grid-2">
+        <div>
+          <label for="weekDate">Cualquier día de la semana</label>
+          <input id="weekDate" type="date" />
+          <div class="chips" style="margin-top:8px">
+            <span class="chip muted" id="weekLabel">Semana: —</span>
+            <span class="chip" id="rosterChip">Trío de 4 (auto): —</span>
+          </div>
+          <div class="cta-row" style="margin-top:8px; gap:8px; flex-wrap:wrap">
+            <button id="btnCloseWeek" class="btn-danger">Cerrar semana y archivar → mensual</button>
+            <button id="btnResetWeek" class="btn">Limpiar semana (no archiva)</button>
+          </div>
+        </div>
+        <div>
+          <div class="note">La asignación es automática; no requiere edición manual.</div>
+          <ul class="note" style="margin-top:8px;padding-left:18px">
+            <li>El trío de 4 rota semanalmente (A ↔ B).</li>
+            <li>Se resetea el historial semanal al archivar.</li>
+          </ul>
+        </div>
+      </div>
+
+      <table id="weeklyTable" style="margin-top:12px">
+        <thead>
+          <tr>
+            <th>Persona</th>
+            <th>Hechas (semana)</th>
+            <th>Cuota</th>
+            <th>Faltan</th>
+            <th>Aviso</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </section>
+
+    <!-- Contador mensual -->
+    <section class="card" style="margin-top:16px">
+      <h2>Contador mensual</h2>
+      <div class="split" style="align-items:end; gap:10px">
+        <div>
+          <label for="monthPick">Mes</label>
+          <input id="monthPick" type="month" />
+        </div>
+        <div class="row" style="gap:8px">
+          <button id="btnEditMonth" class="btn">Editar mes</button>
+          <button id="btnSaveMonth" class="btn-primary hidden">Guardar cambios</button>
+          <button id="btnCancelMonth" class="btn hidden">Cancelar</button>
+          <button id="btnResetMonth" class="btn-danger">Limpiar mes</button>
+        </div>
+      </div>
+      <p class="note" id="monthlyEditNote" style="display:none;margin-top:8px">Editas la <strong>base archivada</strong> del mes (no incluye la semana en curso). Para bajar el total mostrado, ajusta aquí o borra registros de la semana actual en el Historial.</p>
+      <table id="monthlyTable" style="margin-top:12px">
+        <thead>
+          <tr>
+            <th>Persona</th>
+            <th id="monthlyCol2">Total en el mes</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </section>
+
+    <!-- Respaldo / Restaurar -->
+    <section class="card" style="margin-top:16px">
+      <h2>Respaldo / Restaurar</h2>
+      <div class="row" style="gap:10px;align-items:center">
+        <button id="btnBackup" class="btn">Descargar respaldo (.json)</button>
+        <label for="fileRestore" class="btn" style="cursor:pointer">Seleccionar archivo…</label>
+        <input id="fileRestore" type="file" accept="application/json" class="hidden" />
+        <button id="btnRestore" class="btn">Restaurar</button>
+      </div>
+      <p class="note" style="margin-top:8px">Al restaurar se reemplaza todo el contenido actual (integrantes, paseos, cuotas, mensual).</p>
+    </section>
+
+    <!-- Historial (semana actual) -->
+    <section class="card" style="margin-top:16px">
+      <h2>Historial (semana actual)</h2>
+      <table id="table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Fecha</th>
+            <th>Hora</th>
+            <th>Persona</th>
+            <th>Notas</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </section>
+
+    <footer>
+      <span class="subtle">Zona horaria: América/Santiago. Semanas anteriores → se archivan al contador mensual. Rotación automática A/B.</span>
+    </footer>
+  </div>
+
+<script>
+(function(){
+  const TZ='America/Santiago';
+  const el = (id)=> document.getElementById(id);
+  const fmtDate = (d)=> new Intl.DateTimeFormat('es-CL',{timeZone:TZ,year:'numeric',month:'2-digit',day:'2-digit'}).format(d);
+  const fmtTime = (d)=> new Intl.DateTimeFormat('es-CL',{timeZone:TZ,hour:'2-digit',minute:'2-digit'}).format(d);
+  const p2 = (n)=> String(n).padStart(2,'0');
+  const toInput = (d)=> `${d.getFullYear()}-${p2(d.getMonth()+1)}-${p2(d.getDate())}T${p2(d.getHours())}:${p2(d.getMinutes())}`;
+  const toYmd  = (d)=> `${d.getFullYear()}-${p2(d.getMonth()+1)}-${p2(d.getDate())}`;
+  const monthKey = (d)=> `${d.getFullYear()}-${p2(d.getMonth()+1)}`;
+  const sameYMD = (a,b)=> a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth() && a.getDate()===b.getDate();
+  const getMonday = (d)=>{ const x=new Date(d.getFullYear(), d.getMonth(), d.getDate()); const day=x.getDay(); const diff=(day+6)%7; x.setDate(x.getDate()-diff); x.setHours(0,0,0,0); return x; };
+  const weekKeyFromDate=(d)=> toYmd(getMonday(d));
+  const weekLabelFromKey=(k)=>{ const [y,m,dd]=k.split('-').map(Number); const start=new Date(y, m-1, dd); const end=new Date(start); end.setDate(end.getDate()+6); return `Semana del ${fmtDate(start)} al ${fmtDate(end)}`; };
+  const rangeFromWeekKey=(k)=>{ const [y,m,dd]=k.split('-').map(Number); const start=new Date(y,m-1,dd); const end=new Date(y,m-1,dd); end.setDate(end.getDate()+7); return {start,end}; };
+  const parseDateInput=(val)=>{ if(!val) return new Date(); const [y,m,d]=val.split('-').map(Number); return new Date(y, m-1, d); };
+
+  const KEY='blanquita-baseline-v11';
+  const load=()=>{ try{return JSON.parse(localStorage.getItem(KEY))||{people:[],walks:[],rosters:{},monthly:{}};}catch(e){return {people:[],walks:[],rosters:{},monthly:{}};}};
+  const save=(s)=> localStorage.setItem(KEY, JSON.stringify(s));
+  let state = load();
+  if(!state.rosters) state.rosters = {};
+  if(!state.monthly) state.monthly = {};
+
+  // refs
+  const personSel=el('person');
+  const dt=el('dt');
+  const notes=el('notes');
+  const btnSave=el('btnSave');
+  const btnQuick=el('btnQuick');
+  const peopleDiv=el('people');
+  const btnAdd=el('btnAdd');
+  const newPerson=el('newPerson');
+  const btnSeed=el('btnSeed');
+  const btnClearPeople=el('btnClearPeople');
+  const tbody=document.querySelector('#table tbody');
+  const todayTotal=el('todayTotal');
+  const lastWalk=el('lastWalk');
+  const goalChip=el('goalChip');
+  const bar=el('bar');
+  const perPerson=el('perPerson');
+
+  const weekDate=el('weekDate');
+  const weekLabel=el('weekLabel');
+  const weeklyTbody = document.querySelector('#weeklyTable tbody');
+  const rosterChip=el('rosterChip');
+  const btnCloseWeek=el('btnCloseWeek');
+  const btnResetWeek=el('btnResetWeek');
+  const monthPick=el('monthPick');
+  const monthlyTbody=document.querySelector('#monthlyTable tbody');
+  const btnEditMonth=el('btnEditMonth');
+  const btnSaveMonth=el('btnSaveMonth');
+  const btnCancelMonth=el('btnCancelMonth');
+  const btnResetMonth=el('btnResetMonth');
+  const monthlyEditNote=el('monthlyEditNote');
+  const monthlyCol2=el('monthlyCol2');
+
+  const btnBackup=el('btnBackup');
+  const fileRestore=el('fileRestore');
+  const btnRestore=el('btnRestore');
+
+  // Rotación A/B
+  const TRI_A = ['Igna','Mati','Seba'];
+  const TRI_B = ['Titi','Diego','Tomi'];
+  function parityFromWeekKey(k){
+    const [y,m,d]=k.split('-').map(Number);
+    const wkMonday = new Date(y,m-1,d);
+    const epochMonday = new Date(1970,0,5); // lunes
+    const weeks = Math.floor((wkMonday - epochMonday) / (7*24*60*60*1000));
+    const p = ((weeks % 2) + 2) % 2;
+    return p;
+  }
+  function autoRosterForWeek(k){ return parityFromWeekKey(k)===0 ? TRI_A : TRI_B; }
+
+  // Helpers
+  const uid = ()=> (crypto && crypto.randomUUID) ? crypto.randomUUID() : (Math.random().toString(36).slice(2)+Date.now().toString(36));
+  function flashMsg(txt,type='info'){
+    // simple toast
+    console.log(txt);
+  }
+
+  // asegurar IDs
+  (function ensureIds(){ let changed=false; state.walks.forEach(w=>{ if(!w.id){ w.id=uid(); changed=true; }}); if(changed) save(state); })();
+
+  function renderPeople(){
+    personSel.innerHTML = state.people.length ? state.people.map(p=>`<option>${p}</option>`).join('') : '<option value="">— Sin integrantes —</option>';
+    peopleDiv.innerHTML = state.people.length ? state.people.map(p=>`<span class="chip">${p}</span>`).join('') : '<div class="note">Aún no agregas integrantes.</div>';
+  }
+
+  function renderTable(){
+    const cwk = weekKeyFromDate(new Date());
+    const {start,end} = rangeFromWeekKey(cwk);
+    const rows = state.walks.filter(w=>{ const d=new Date(w.when); return d>=start && d<end; }).sort((a,b)=> new Date(b.when)-new Date(a.when));
+    if(!rows.length){ tbody.innerHTML = '<tr><td colspan="6" class="subtle">Sin registros.</td></tr>'; return; }
+    tbody.innerHTML = rows.map((w,i)=>{
+      const d=new Date(w.when);
+      return `<tr><td>${rows.length-i}</td><td>${fmtDate(d)}</td><td>${fmtTime(d)}</td><td>${w.person}</td><td>${w.note||''}</td><td><button class="pill" data-del="${w.id}">🗑</button></td></tr>`;
+    }).join('');
+  }
+
+  function renderToday(){
+    const now=new Date();
+    const today=state.walks.filter(w=> sameYMD(new Date(w.when), now)).sort((a,b)=> new Date(b.when)-new Date(a.when));
+    todayTotal.textContent = 'Total: '+today.length;
+    lastWalk.textContent = today[0]? `Último: ${fmtTime(new Date(today[0].when))} (${today[0].person})` : 'Último: —';
+    const goal=3; const pct=Math.min(100, Math.round((today.length/goal)*100));
+    bar.style.width=pct+'%';
+    goalChip.className='chip '+(today.length>=goal?'success':'warn');
+    goalChip.textContent = today.length>=goal ? 'Meta lograda ✅' : `Faltan ${Math.max(0,goal-today.length)} para meta`;
+    const counts={}; state.people.forEach(p=>counts[p]=0); today.forEach(w=>counts[w.person]=(counts[w.person]||0)+1);
+    perPerson.innerHTML = state.people.map(p=>`<li>${p}: <strong>${counts[p]||0}</strong></li>`).join('');
+  }
+
+  // Semanal
+  function currentWeekKey(){ return weekKeyFromDate(parseDateInput(weekDate.value)); }
+  function getWeekCounts(wk){
+    const {start,end} = rangeFromWeekKey(wk);
+    const counts={}; state.people.forEach(p=>counts[p]=0);
+    state.walks.forEach(w=>{ const d=new Date(w.when); if(d>=start && d<end){ counts[w.person] = (counts[w.person]||0)+1; }});
+    return counts;
+  }
+  function dayIndexForWeek(wk){
+    const {start,end} = rangeFromWeekKey(wk);
+    const now = new Date();
+    const clamp = now<start? start : now>end? end : now;
+    const idx = Math.min(6, Math.floor((clamp - start)/(24*60*60*1000)));
+    return idx;
+  }
+  function warnLabel(left, dayIdx){
+    if(left>=2 && dayIdx>=3) return `⚠️ Atraso (faltan ${left})`;
+    if(left>=1 && dayIdx>=5) return `⚠️ Últimos días (falta${left>1?'n':''} ${left})`;
+    return '';
+  }
+  function renderWeekly(){
+    const wk = currentWeekKey();
+    weekLabel.textContent = weekLabelFromKey(wk);
+    const four = autoRosterForWeek(wk);
+    rosterChip.textContent = four.length ? 'Trío de 4 (auto): '+ four.join(', ') : 'Trío de 4 (auto): —';
+
+    const counts = getWeekCounts(wk);
+    const dayIdx = dayIndexForWeek(wk);
+    const rows = state.people.map(p=>{
+      const quota = four.includes(p) ? 4 : 3;
+      const done = counts[p]||0;
+      const left = Math.max(0, quota - done);
+      const warn = warnLabel(left, dayIdx);
+      return {p, done, quota, left, warn};
+    });
+    if(!rows.length){ weeklyTbody.innerHTML = '<tr><td colspan="5" class="subtle">Sin integrantes.</td></tr>'; return; }
+    weeklyTbody.innerHTML = rows.map(r=>{
+      const strong = r.left===0 ? ' style="color:#10b981;font-weight:700"' : '';
+      const rowStyle = r.warn ? ' style="background:rgba(245,158,11,.08)"' : '';
+      const warnChip = r.warn ? `<span class="chip warn">${r.warn}</span>` : '';
+      return `<tr${rowStyle}><td>${r.p}</td><td>${r.done}</td><td>${r.quota}</td><td${strong}>${r.left}</td><td>${warnChip}</td></tr>`;
+    }).join('');
+  }
+
+  // Mensual (edición base)
+  let monthlyEditMode = false;
+  function addToMonthly(person, d){
+    const mk = monthKey(d);
+    if(!state.monthly[mk]) state.monthly[mk] = {};
+    state.monthly[mk][person] = (state.monthly[mk][person]||0) + 1;
+  }
+  function renderMonthly(){
+    const mk = monthPick.value || monthKey(new Date());
+    const base = {...(state.monthly[mk]||{})};
+    state.people.forEach(p=>{ if(!(p in base)) base[p]=0; });
+
+    if(monthlyEditMode){
+      monthlyEditNote.style.display='block';
+      monthlyCol2.textContent = 'Base archivada (editable)';
+      const entries = Object.entries(base).sort((a,b)=> a[0].localeCompare(b[0]));
+      monthlyTbody.innerHTML = entries.map(([p,c])=> `<tr><td>${p}</td><td><input class="monthlyInput" type="number" min="0" step="1" data-person="${p}" value="${c}" /></td></tr>`).join('');
+      btnEditMonth.classList.add('hidden');
+      btnSaveMonth.classList.remove('hidden');
+      btnCancelMonth.classList.remove('hidden');
+    } else {
+      monthlyEditNote.style.display='none';
+      monthlyCol2.textContent = 'Total en el mes';
+      state.walks.forEach(w=>{ const d=new Date(w.when); if(monthKey(d)===mk){ base[w.person]=(base[w.person]||0)+1; }});
+      const entries = Object.entries(base).sort((a,b)=> b[1]-a[1]);
+      if(entries.length===0){ monthlyTbody.innerHTML = '<tr><td colspan="2" class="subtle">Sin datos.</td></tr>'; return; }
+      monthlyTbody.innerHTML = entries.map(([p,c])=> `<tr><td>${p}</td><td>${c}</td></tr>`).join('');
+      btnEditMonth.classList.remove('hidden');
+      btnSaveMonth.classList.add('hidden');
+      btnCancelMonth.classList.add('hidden');
+    }
+  }
+
+  // Archivado semanal
+  function rolloverOldWalks(){
+    const cwk = weekKeyFromDate(new Date());
+    const kept=[]; let moved=0;
+    for(const w of state.walks){
+      const d=new Date(w.when);
+      const wk = weekKeyFromDate(d);
+      if(wk!==cwk){ addToMonthly(w.person, d); moved++; } else { kept.push(w); }
+    }
+    if(moved>0){
+      state.walks = kept; save(state);
+    }
+  }
+  function closeCurrentWeek(){
+    if(!state.walks.length){ return; }
+    if(!confirm('¿Cerrar la semana actual y archivar sus paseos al contador mensual?')) return;
+    for(const w of state.walks){ addToMonthly(w.person, new Date(w.when)); }
+    state.walks = []; save(state);
+    renderTable(); renderToday(); renderWeekly(); renderMonthly();
+  }
+  function resetCurrentWeek(){
+    if(!state.walks.length){ return; }
+    if(!confirm('¿Limpiar la semana actual SIN archivar?')) return;
+    const cwk = weekKeyFromDate(new Date());
+    state.walks = state.walks.filter(w=> weekKeyFromDate(new Date(w.when)) !== cwk);
+    save(state);
+    renderTable(); renderToday(); renderWeekly(); renderMonthly();
+  }
+  function resetCurrentMonth(){
+    const mk = monthPick.value || monthKey(new Date());
+    if(!confirm('¿Limpiar la base archivada del mes seleccionado?')) return;
+    state.monthly[mk] = {}; save(state);
+    renderMonthly();
+  }
+
+  // Respaldo
+  function exportBackup(){
+    const data = JSON.stringify(state, null, 2);
+    const blob = new Blob([data], {type:'application/json'});
+    const now = new Date();
+    const fname = `blanquita-backup-${now.getFullYear()}${p2(now.getMonth()+1)}${p2(now.getDate())}-${p2(now.getHours())}${p2(now.getMinutes())}.json`;
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = fname; a.click();
+    URL.revokeObjectURL(url);
+  }
+  function restoreFromFile(){
+    const file = fileRestore.files && fileRestore.files[0];
+    if(!file){ alert('Selecciona un archivo de respaldo primero.'); return; }
+    const reader = new FileReader();
+    reader.onload = function(){
+      try{
+        const parsed = JSON.parse(reader.result);
+        const next = {people:[], walks:[], rosters:{}, monthly:{}, ...parsed};
+        if(!Array.isArray(next.people) || !Array.isArray(next.walks) || typeof next.rosters!=='object' || typeof next.monthly!=='object'){
+          throw new Error('Estructura desconocida');
+        }
+        if(!confirm('Esto reemplazará todos los datos actuales. ¿Continuar?')) return;
+        state = next;
+        let changed=false; state.walks.forEach(w=>{ if(!w.id){ w.id=uid(); changed=true; }}); if(changed) save(state);
+        save(state);
+        renderPeople(); renderTable(); renderToday(); renderWeekly(); renderMonthly();
+      }catch(err){ console.error(err); alert('No se pudo restaurar: '+err.message); }
+    };
+    reader.readAsText(file, 'utf-8');
+  }
+
+  // Eventos
+  btnAdd.onclick = ()=>{
+    const v=newPerson.value.trim(); if(!v){return;}
+    if(state.people.includes(v)){return;}
+    state.people.push(v); save(state); newPerson.value='';
+    renderPeople(); renderToday(); renderWeekly(); renderMonthly();
+  };
+  btnSeed.onclick = ()=>{
+    ['María Luisa','Pablo','Javi','Martín','Sofi','Abuela'].forEach(n=>{ if(!state.people.includes(n)) state.people.push(n);}); save(state); renderPeople(); renderWeekly(); renderMonthly();
+  };
+  btnClearPeople.onclick = ()=>{ state.people=[]; save(state); renderPeople(); renderToday(); renderWeekly(); renderMonthly(); };
+  btnSave.onclick = ()=> addWalk(personSel.value, new Date(dt.value||Date.now()), notes.value);
+  btnQuick.onclick = ()=> addWalk(personSel.value, new Date(), notes.value);
+  btnCloseWeek.onclick = closeCurrentWeek;
+  btnResetWeek.onclick = resetCurrentWeek;
+  weekDate.onchange = ()=> renderWeekly();
+  monthPick.onchange = ()=> { monthlyEditMode=false; renderMonthly(); };
+  btnEditMonth.onclick = ()=> { monthlyEditMode=true; renderMonthly(); };
+  btnCancelMonth.onclick = ()=> { monthlyEditMode=false; renderMonthly(); };
+  btnSaveMonth.onclick = ()=> {
+    const mk = monthPick.value || monthKey(new Date());
+    const inputs = Array.from(document.querySelectorAll('.monthlyInput'));
+    const nextBase = {};
+    inputs.forEach(inp=>{ const p=inp.dataset.person; const v=Math.max(0, parseInt(inp.value||'0',10)); nextBase[p]=v; });
+    state.monthly[mk] = nextBase; save(state);
+    monthlyEditMode=false; renderMonthly();
+  };
+  btnResetMonth.onclick = resetCurrentMonth;
+  tbody.addEventListener('click', (e)=>{
+    const id = e.target && e.target.dataset ? e.target.dataset.del : null; if(!id) return;
+    if(!confirm('¿Eliminar este registro de la semana actual?')) return;
+    state.walks = state.walks.filter(w=> w.id!==id);
+    save(state); renderTable(); renderToday(); renderWeekly(); renderMonthly();
+  });
+  function addWalk(person, when, note){
+    if(!person){ return; }
+    rolloverOldWalks();
+    state.walks.push({id: uid(), person, when:new Date(when).toISOString(), note: (note||'').trim()});
+    save(state);
+    dt.value = toInput(new Date()); notes.value='';
+    renderTable(); renderToday(); renderWeekly(); renderMonthly();
+  }
+
+  // INIT
+  document.getElementById('tz').textContent = new Intl.DateTimeFormat('es-CL',{timeZone:TZ,timeStyle:'short',dateStyle:'medium'}).format(new Date()) + ' ('+TZ+')';
+  dt.value = toInput(new Date());
+  const todayInit = new Date();
+  weekDate.value = toYmd(todayInit);
+  monthPick.value = monthKey(todayInit);
+
+  const ROTATION = ['Igna','Mati','Seba','Titi','Diego','Tomi'];
+  ROTATION.forEach(n=>{ if(!state.people.includes(n)) state.people.push(n); }); save(state);
+
+  rolloverOldWalks();
+  renderPeople(); renderTable(); renderToday(); renderWeekly(); renderMonthly();
+})();
+</script>
+
+<!-- PWA install script -->
+<script>
+(function(){
+  const installBtn = document.getElementById('btnInstall');
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js').catch(console.error);
+    });
+  }
+  let deferredPrompt=null;
+  window.addEventListener('beforeinstallprompt', (e)=>{
+    e.preventDefault();
+    deferredPrompt = e;
+    if (installBtn) installBtn.style.display='';
+  });
+  installBtn?.addEventListener('click', async ()=>{
+    try{
+      if(!deferredPrompt) return;
+      deferredPrompt.prompt();
+      await deferredPrompt.userChoice;
+    } finally {
+      deferredPrompt=null; if(installBtn) installBtn.style.display='none';
+    }
+  });
+  window.addEventListener('appinstalled', ()=>{
+    const tz = document.getElementById('tz');
+    if(tz) tz.textContent = tz.textContent + ' • App instalada ✅';
+  });
+})();
+</script>
+</body>
+</html>
