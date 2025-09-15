@@ -1,5 +1,5 @@
 /* Blanquita Tracker — SW offline */
-const CACHE = "blanquita-cache-v1";
+const CACHE = "blanquita-cache-v2";
 const ASSETS = ["./","./index.html","./manifest.webmanifest","./icons/blanquita.svg","./icons/blanquita-maskable.svg","./icons/blanquita-180.png"];
 
 self.addEventListener("install", (e) => {
